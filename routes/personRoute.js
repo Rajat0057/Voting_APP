@@ -84,7 +84,7 @@ router.delete('/delete/:id', async (req, resp) => {
             return resp.status(400).json({ err :'NOT FOUN'})
         }
         console.log("deleted");
-        resp.send(200).json(response)
+        resp.send(200).json(response);
 
 
     } catch (err) {
