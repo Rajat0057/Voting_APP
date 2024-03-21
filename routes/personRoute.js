@@ -1,16 +1,25 @@
 const express = require('express');
 const Person = require('./../models/person')
 const router = express.Router();
+const { jwtAuthMiddleWare, genrateToken } = require("./../jwt");
 
 
-router.post('/', async (req, resp) => {
+router.post('/signup', async (req, resp) => {
     try {
         const data = req.body;
 
         const newPerson = new Person(data);
         const savePerson = await newPerson.save()
         console.log('data response')
-        resp.status(200).json(savePerson);
+        const payload = {
+            id: savePerson.id,
+            username: savePerson.username
+        }
+
+        const token = genrateToken(payload);
+        console.log("my token is", token)
+
+        resp.status(200).json({ savePerson: savePerson, token: token });
     } catch (err) {
         console.log("the err", err);
         resp.status(500).json({ err })
@@ -22,7 +31,37 @@ router.post('/', async (req, resp) => {
 })
 
 
-router.get('/getAll', async (req, resp) => {
+router.post('/login', async (req, resp) => {
+    try {
+        const { username, password } = req.body;
+
+        const user = await Person.findOne({ username: username });
+        if (!user || !(await user.comparePassword(password))) {
+
+            return resp.status(401).json({ error: 'user ot password not valid' })
+        }
+
+
+        const payload = {
+            id: user.id,
+            username: user.username,
+        }
+
+        const token = genrateToken(payload)
+
+        resp.status(200).json(token );
+    } catch (err) {
+        console.log("the err", err);
+        resp.status(500).json({ err })
+
+
+
+    }
+
+})
+
+
+router.get('/getAll',jwtAuthMiddleWare, async (req, resp) => {
 
     try {
 
@@ -35,7 +74,24 @@ router.get('/getAll', async (req, resp) => {
 
 })
 
+router.get('/profile',jwtAuthMiddleWare, async (req, resp) => {
+try{
 
+    const userData=req.user;
+    console.log("user data",userData);
+    const id =userData.id;
+    const user = await Person.findById(id);
+    resp.status(200).json({user})
+
+}catch(err)
+{
+    resp.status(500).json(err)
+}
+
+
+
+
+})
 router.get('/:workType', async (req, resp) => {
     try {
         const workType = req.params.workType;
@@ -81,7 +137,7 @@ router.delete('/delete/:id', async (req, resp) => {
         console.log("the us", personId)
         const response = await Person.findByIdAndDelete(personId);
         if (!response) {
-            return resp.status(400).json({ err :'NOT FOUN'})
+            return resp.status(400).json({ err: 'NOT FOUN' })
         }
         console.log("deleted");
         resp.send(200).json(response);

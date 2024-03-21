@@ -6,13 +6,13 @@ require('dotenv').config();
 // const mongoURL ='mongodb+srv://vrajat1997:rajathotel@cluster0.xdsz9k7.mongodb.net/'
 
 
-const mongoURL = process.env.DB_URL;
+// const mongoURL = process.env.DB_URL;
 
 const localmongoURL = process.env.DB_URL_LOCAL;
 // const mongoURL = process.env.DB_URL || 'mongodb://localhost:27017/hotels'; // Fallback URL
-console.log("the urls", mongoURL);
+// console.log("the urls", mongoURL);
 
-mongoose.connect(mongoURL,{
+mongoose.connect(localmongoURL,{
 useNewUrlParser:true,
 useUnifiedTopology:true}
 
